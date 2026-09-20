@@ -5,10 +5,13 @@ outdir="${outdir:-./outdir}"
 samplesheet="${input:-}"
 fail_samples="${QC_FAIL_SAMPLES:-}"
 
-# The SDK localizes s3:// params in params.json; prefer that over the raw env.
+# The SDK localizes s3:// params (input, outdir) in params.json; the env
+# values still hold the raw s3:// URIs, so prefer the localized paths.
 if [ -f params.json ]; then
-  localized="$(python3 -c "import json;d=json.load(open('params.json'));print((d.get('params') or d).get('input',''))" 2>/dev/null || true)"
+  localized="$(python3 -c "import json;d=json.load(open('params.json'));p=d.get('params') or d;print(p.get('input',''))" 2>/dev/null || true)"
   [ -n "$localized" ] && samplesheet="$localized"
+  localized="$(python3 -c "import json;d=json.load(open('params.json'));p=d.get('params') or d;print(p.get('outdir',''))" 2>/dev/null || true)"
+  [ -n "$localized" ] && outdir="$localized"
 fi
 
 if [ -z "$samplesheet" ] || [ ! -f "$samplesheet" ]; then
