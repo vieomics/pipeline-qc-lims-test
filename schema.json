@@ -1,56 +1,18 @@
 {
   "$defs": {
     "input_output_options": {
-      "title": "Input output option",
+      "title": "Input/Output Options",
       "type": "object",
-      "description": "",
-      "default": "",
-      "required": ["file"],
       "properties": {
-        "repeat": {
-          "type": "integer",
-          "default": 300,
-          "description": "The number of time for saying Hello World",
-          "fa_icon": "fas fa-greater-than-equal"
-        },
-        "file": {
+        "input": {
           "type": "string",
-          "default": "workspace/test.txt",
           "format": "file-path",
-          "fa_icon": "fas fa-dna",
-          "description": "File path"
+          "description": "Samplesheet CSV with one row per sample"
         },
-        "dir": {
+        "outdir": {
           "type": "string",
-          "default": "workspace",
           "format": "directory-path",
-          "fa_icon": "fas fa-dna",
-          "description": "Directory path"
-        },
-        "integer": {
-          "type": "integer",
-          "default": 1,
-          "description": "Interger",
-          "fa_icon": "fas fa-greater-than-equal"
-        },
-        "number": {
-          "type": "number",
-          "default": 0.3,
-          "description": "Float",
-          "fa_icon": "fas fa-greater-than-equal"
-        },
-        "string": {
-          "type": "string",
-          "default": "string1",
-          "description": "String",
-          "fa_icon": "fas fa-greater-than-equal",
-          "enum": ["string1", "string2", "string3"]
-        },
-        "boolean": {
-          "type": "boolean",
-          "default": true,
-          "description": "Boolean",
-          "fa_icon": "fas fa-greater-than-equal"
+          "description": "Output directory"
         }
       }
     }
