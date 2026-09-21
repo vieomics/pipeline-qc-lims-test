@@ -3,33 +3,16 @@ set -euo pipefail
 
 outdir="${outdir:-./outdir}"
 samplesheet="${input:-}"
-fail_samples="${QC_FAIL_SAMPLES:-}"
 
 if [ -z "$samplesheet" ] || [ ! -f "$samplesheet" ]; then
-  echo "QC fixture: missing input samplesheet: $samplesheet" >&2
+  echo "qc: missing input samplesheet: $samplesheet" >&2
   exit 1
 fi
 
-mkdir -p "$outdir/qc" "$outdir/fastqc"
-printf 'sample_id,status,total_reads,duplication,q30\n' > "$outdir/qc/qc_summary.csv"
+python="${PYTHON:-python3}"
+if ! command -v "$python" >/dev/null 2>&1; then
+  echo "qc: python3 is required to run FASTQ QC" >&2
+  exit 1
+fi
 
-while IFS=, read -r sample _rest; do
-  [ -z "${sample:-}" ] && continue
-  [ "$sample" = "sample" ] && continue
-  sample="${sample%$'\r'}"
-  status="pass"
-  case ",$fail_samples," in
-    *",$sample,"*) status="fail" ;;
-  esac
-  reads=$(( 100000 + ${#sample} * 137 ))
-  printf '%s,%s,%s,12.5,92.0\n' "$sample" "$status" "$reads" >> "$outdir/qc/qc_summary.csv"
-  printf 'fake fastqc report for %s\n' "$sample" > "$outdir/fastqc/${sample}_fastqc.txt"
-  if command -v zip >/dev/null 2>&1; then
-    (cd "$outdir/fastqc" && zip -q -j "${sample}_fastqc.zip" "${sample}_fastqc.txt") || true
-  fi
-done < "$samplesheet"
-
-cat > "$outdir/multiqc_report.html" <<'HTML'
-<html><head><title>Fake MultiQC</title></head><body><h1>Fake MultiQC report</h1></body></html>
-HTML
-echo "QC fixture complete: $(($(wc -l < "$outdir/qc/qc_summary.csv") - 1)) samples"
+exec "$python" "$(dirname "$(readlink -f "$0")")/qc.py" "$samplesheet" "$outdir"
