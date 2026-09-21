@@ -73,7 +73,19 @@ def _open_s3(key: str) -> BinaryIO:
         body = boto3.client("s3").get_object(Bucket=bucket, Key=obj)["Body"]
         stream = body._raw_stream if hasattr(body, "_raw_stream") else body
         return gzip.GzipFile(fileobj=stream) if key.endswith(".gz") else stream
-    raise QCError(f"cannot read {key}: boto3 is not installed")
+    # Runners ship the AWS CLI and injected credentials, so stream through it.
+    import shutil
+    import subprocess
+
+    if shutil.which("aws"):
+        process = subprocess.Popen(
+            ["aws", "s3", "cp", key, "-"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+        )
+        assert process.stdout is not None
+        return gzip.GzipFile(fileobj=process.stdout) if key.endswith(".gz") else process.stdout
+    raise QCError(f"cannot read {key}: neither boto3 nor the aws CLI is available")
 
 
 def open_fastq(location: str) -> BinaryIO:
